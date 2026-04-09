@@ -48,24 +48,14 @@ jobs:
       
       # ── year-one ──────────────────────────────────────────────────────────
       - name: Build year-one image (timestamp baked in)
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          load: true
-          build-args: timestamp=0001-01-01T00:00:00Z
-          tags: ${{ env.IMAGE }}:year-one
+        run: docker build --build-arg timestamp=0001-01-01T00:00:00Z -t ${{ env.IMAGE }}:year-one .
 
       - name: Backdate year-one OCI metadata
         run: python travel.py ${{ env.IMAGE }}:year-one ${{ env.IMAGE }}:year-one 0001-01-01T00:00:00Z
 
       # ── future ────────────────────────────────────────────────────────────
       - name: Build future image (timestamp baked in)
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          load: true
-          build-args: timestamp=9999-12-31T23:59:59Z
-          tags: ${{ env.IMAGE }}:future
+        run: docker build --build-arg timestamp=9999-12-31T23:59:59Z -t ${{ env.IMAGE }}:future .
 
       - name: Backdate future OCI metadata
         run: python travel.py ${{ env.IMAGE }}:future ${{ env.IMAGE }}:future 9999-12-31T23:59:59Z
