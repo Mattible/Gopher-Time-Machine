@@ -21,6 +21,11 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Disable containerd image store (required for docker save/load in travel.py)
+        run: |
+          echo '{"features":{"containerd-snapshotter":false}}' | sudo tee /etc/docker/daemon.json
+          sudo systemctl restart docker
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
@@ -31,4 +36,27 @@ jobs:
           push: false
           platforms: linux/amd64,linux/arm64
           tags: gopher-time-machine:ci
+      
+      # ── year-one ──────────────────────────────────────────────────────────
+      - name: Build year-one image (timestamp baked in)
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          load: true
+          build-args: timestamp=0001-01-01T00:00:00Z
+          tags: ${{ env.IMAGE }}:year-one
 
+      - name: Backdate year-one OCI metadata
+        run: python travel.py ${{ env.IMAGE }}:year-one ${{ env.IMAGE }}:year-one 0001-01-01T00:00:00Z
+
+      # ── future ────────────────────────────────────────────────────────────
+      - name: Build future image (timestamp baked in)
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          load: true
+          build-args: timestamp=9999-12-31T23:59:59Z
+          tags: ${{ env.IMAGE }}:future
+
+      - name: Backdate future OCI metadata
+        run: python travel.py ${{ env.IMAGE }}:future ${{ env.IMAGE }}:future 9999-12-31T23:59:59Z
