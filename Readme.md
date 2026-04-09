@@ -7,7 +7,7 @@ A toy Go HTTP server packaged as a Docker image, paired with `travel.py` — a P
 ```
 .
 ├── Dockerfile      # Multi-stage build for the Go server
-├── main.go         # Tiny HTTP server, responds on GET /hello
+├── main.go         # Tiny HTTP server, responds on GET
 ├── go.mod
 ├── makefile        # Convenience targets for build, backdate, run
 └── travel.py       # Docker image timestamp backdating tool
