@@ -75,6 +75,10 @@ make backdate IMAGE=gopher-time-machine:latest RESULT_TAG=gopher-time-machine:fu
 # Run will build and backdate by default, but you can also point it at an already backdated image.
 make run IMAGE=EXISTING_TAG RESULT_TAG={NEW_TAG} TARGET_DATE={TIME_DATE}
 
+# Run the year-one image
+make run IMAGE=gopher-time-machine:year-one RESULT_TAG=gopher-time-machine:year-one TARGET_DATE=0001-01-01T00:00:01Z
+
+# Run the future image
 make run IMAGE=gopher-time-machine:latest RESULT_TAG=gopher-time-machine:future TARGET_DATE=9999-12-31T23:59:59Z
 
 # Verify the result
