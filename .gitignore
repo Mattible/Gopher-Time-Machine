@@ -1,0 +1,5 @@
+# gitignore for the Traveling Docker Container project
+__pycache__/
+*.tar.gz
+*.gz
+*.tar
