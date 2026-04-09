@@ -29,13 +29,22 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
+      - name: Set image name
+        run: |
+          echo "IMAGE=ghcr.io/mattible/gopher-time-machine" >> $GITHUB_ENV
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
       - name: Build image (no push)
         uses: docker/build-push-action@v6
         with:
           context: .
           push: false
           platforms: linux/amd64,linux/arm64
-          tags: gopher-time-machine:ci
+          tags: ${{ env.IMAGE }}:latest
       
       # ── year-one ──────────────────────────────────────────────────────────
       - name: Build year-one image (timestamp baked in)
