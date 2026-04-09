@@ -125,6 +125,8 @@ def backdate_oci(blobs_dir: str, index_path: str, extract_path: str, new_tag: st
         with open(legacy_manifest_path) as f:
             legacy = json.load(f)
         for entry in legacy:
+            if entry.get('Config') and cfg_hash in entry['Config']:
+                entry['Config'] = entry['Config'].replace(cfg_hash, new_cfg_hash)
             if entry.get('RepoTags'):
                 entry['RepoTags'] = [new_tag]
         with open(legacy_manifest_path, 'w') as f:
