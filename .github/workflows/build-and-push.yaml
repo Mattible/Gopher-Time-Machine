@@ -1,0 +1,82 @@
+
+name: Gopher Time Machine CD Build & Push
+
+on:
+  push:
+    branches:
+      - main
+
+defaults:
+  run:
+    working-directory: ./
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    concurrency:
+      group: ${{ github.workflow }}-${{ github.ref }}
+      cancel-in-progress: true
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set lowercase image name
+        run: |
+          echo "IMAGE=ghcr.io/mattible/gopher-time-machine" >> $GITHUB_ENV
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      # ── latest ────────────────────────────────────────────────────────────
+      - name: Build and push latest
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: ${{ env.IMAGE }}:latest
+
+      # ── year-one ──────────────────────────────────────────────────────────
+      - name: Build year-one image (timestamp baked in)
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          load: true
+          build-args: timestamp=0001-01-01T00:00:00Z
+          tags: ${{ env.IMAGE }}:year-one
+
+      - name: Backdate year-one OCI metadata
+        run: python travel.py ${{ env.IMAGE }}:year-one ${{ env.IMAGE }}:year-one 0001-01-01T00:00:00Z
+
+      - name: Push year-one
+        run: docker push ${{ env.IMAGE }}:year-one
+
+      # ── future ────────────────────────────────────────────────────────────
+      - name: Build future image (timestamp baked in)
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          load: true
+          build-args: timestamp=9999-12-31T23:59:59Z
+          tags: ${{ env.IMAGE }}:future
+
+      - name: Backdate future OCI metadata
+        run: python travel.py ${{ env.IMAGE }}:future ${{ env.IMAGE }}:future 9999-12-31T23:59:59Z
+
+      - name: Push future
+        run: docker push ${{ env.IMAGE }}:future
